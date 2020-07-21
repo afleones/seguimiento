@@ -177,25 +177,28 @@ end
 crumb :admin_programa_fichas_edit do |ficha|
   link "Ficha numero: #{ficha.numero}", edit_admin_programa_ficha_path(ficha)
 end
-
 crumb :admin_programa_fichas_show do |ficha|
   link "Ficha numero: #{ficha.numero}", admin_programa_ficha_path(ficha)
 end
 
-# breadcrumbs para anotaciones<Comentarios
+# breadcrumbs para anotaciones<comentarios(aprendiz)
 
 crumb :anotacion_comentarios do |anotacion|
-  link "comentarios de la anotacion: #{anotacion.id}", anotacion_comentarios_path
+  link 'anotacion/'"#{anotacion.id}"'/Comentarios', anotacion_comentarios_path(anotacion)
+  # parent :user_anotacion_show, anotacion, user
 end
 
-crumb :anotacion_comentarios_new do
-  link 'Comentar', new_anotacion_comentario_path
+crumb :new_anotacion_comentario do |anotacion|
+  link 'Crear', new_anotacion_comentario_path(anotacion)
+  parent :anotacion_comentarios, anotacion
 end
 
-crumb :anotacion_comentarios_show do |comentario|
-  link "comentario numero: #{comentario.id}", anotacion_comentario_path(comentario)
+crumb :anotacion_comentario_edit do |anotacion, comentario|
+  link '/Editar/'"#{comentario.id}", edit_anotacion_comentario_path(anotacion)
+  parent :anotacion_comentario_show, anotacion, comentario
 end
 
-crumb :anotacion_comentarios_edit do |anotacion,comentario|
-  link "Anotacion: #{anotacion.id} Comentario numero: #{comentario.id}", edit_anotacion_comentario_path(anotacion, comentario)
+crumb :anotacion_comentario_show do |anotacion, comentario|
+  link 'Ver/'"#{comentario.id}", anotacion_comentario_path(comentario)
+  parent :anotacion_comentarios, anotacion
 end

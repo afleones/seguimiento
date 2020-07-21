@@ -2,14 +2,10 @@ es:
   anotaciones:
     comentarios:
       create:
-        success: Nuevo Comentario creado
-        alert: Problemas con la creación del Comentario
+        success: Se creo el comentario de manera correcta
+        alert: Problemas al momento de registrar el comentario.
       update:
-        success: Se actualizo de manera correcta el Comentario
-        alert: Problemas Al actualizar el Comentario
+        success: Comentario actualizado.
+        alert: Problemas con la actualización del comentario.
       destroy:
-        success: Se elimino el Comentario de manera correcta
-  simple_form:
-    placeholders:
-      comentario:
-          comentario: 'Escribe aquí el Comentario'
+        success: Comentario eliminado correctamente.
