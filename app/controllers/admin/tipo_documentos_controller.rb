@@ -7,13 +7,26 @@ module Admin
     respond_to :html
 
     def index
-      @tipodocumentos = if params[:q].present?
-                          Tipodocumento.where('nombre ilike :q', q:
-                            "%#{params[:q]}%").page params[:page]
-                        else
-                          Tipodocumento.all.page params[:page]
-                        end
+      if params[:q].present?
+        if params[:q].include? ':'
+          @tipodocumentos = Tipodocumento.where('cast(id as text) ilike :q', q: "%#{params[:q].gsub(":","").to_i}%").order(id: :asc).page params[:page]
+        else
+          @tipodocumentos = Tipodocumento.where('cast(id as text) ilike :q or cast(created_at as text) ilike :q or cast(nombre as text) ilike :q', q: "%#{params[:q]}%").order(id: :asc).page params[:page]
+        end
+      else
+        @tipodocumentos =  Tipodocumento.page params[:page]
+      end
+      respond_html_and_csv
     end
+
+  def respond_html_and_csv
+    respond_to do |format|
+      format.html
+      format.xlsx do
+        response.headers['Content-Disposition'] = 'attachment; filename="tipodocumentos.xlsx"'
+      end
+    end
+  end
 
     def show; end
 

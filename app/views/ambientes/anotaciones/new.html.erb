@@ -1,20 +1,27 @@
 <!-- breadcrumbs -->
 <%breadcrumb :ambiente_anotacion_new, @ambiente%>
-<div class="ibox mt-4 col-md-12 ">
-  <div class="ibox-title">
-    <h1>Datos Del Ambiente</h1>
-  </div>
-  <div class="ibox-content ">
-    <div class="info">
-      <h2>
-        <p> <span class="font-weight-bold">Nombre:</span>
-          <%=  @ambiente.nombre %></p>
-      </h2>
-      <h2>
-        <p></p> <span class="font-weight-bold">Descripción: </span>
-        <%=  @ambiente.descripcion %></p>
-      </h2>
+<!-- datos ambiente -->
+<%= render partial: 'cabecera' %>
+<div class="row">
+  <div class="col-12 p-0 w-100">
+    <div class="ibox content">
+      <!-- datos anotacion -->
+      <div clas="row">
+        <div class="col-12 p-0 mt-3">
+          <!--title-->
+          <div class="ibox-title">
+            <h1 class="pl-4"><strong>Nueva anotación.</strong></h1>
+          </div>
+          <!--Anotacion -->
+          <div class="ibox-content">
+            <div class="info col-12">
+              <div class="card border-secondar">
+                <%= render partial: 'form' %>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <%= render partial: 'form_new' %>
   </div>
 </div>

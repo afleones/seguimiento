@@ -69,14 +69,34 @@
 module Anotaciones
   class ComentariosController < ApplicationController
     before_action :authenticate_user!
-    before_action :set_anotacion, :set_operator
+    before_action :set_anotacion, :set_operator, :set_anotacion_creator
     before_action :set_comentario, only: %i[show edit update destroy]
-    before_action :set_anotacion_creator, :set_propietario
     after_action  :notificar, only: %i[create update]
+    before_action :set_propietario, unless: :propietario_is_user?
     respond_to :html
 
     def index
-      @comentarios = @anotacion.comentarios.page params[:page]
+      if params[:q].present?
+        if params[:q].include? ':'
+          @comentarios = @anotacion.comentarios.where('cast(id as text) ilike :q', q: "%#{params[:q].gsub(":","").to_i}%").order(id: :asc).page params[:page]
+        else
+          @comentarios = @anotacion.comentarios.where('cast(id as text) ilike :q or cast(created_at as text) ilike :q', q: "%#{params[:q]}%").or(@anotacion.comentarios.where('cast(created_by as text) ilike any (array[?])', User.where('nombres ilike :q or apellidos ilike :q', q:"%#{params[:q]}%").ids.map {|val| val.to_s})).order(id: :asc).page params[:page]
+        end
+      elsif current_user.has_role? :instructor
+        @comentarios = @anotacion.comentarios.page params[:page]
+      elsif current_user.has_role? :aprendiz
+        @comentarios = @anotacion.comentarios.page params[:page]
+      end
+      respond_html_and_csv
+    end
+
+    def respond_html_and_csv
+      respond_to do |format|
+        format.html
+        format.xlsx do
+          response.headers['Content-Disposition'] = 'attachment; filename="omentariosAnotaciones.xlsx"'
+        end
+      end
     end
 
     def show; end
@@ -109,20 +129,29 @@ module Anotaciones
     end
 
     def notificar
-      # se notifica al creador de la anotacion, que el aprendiz creo un comentario.
-      if @user.has_role? :aprendiz
-        UserMailer.comentario_mailer(@user, @anotacion, @comentario).deliver_now
-      # se notifica al aprendiz y alcreador de la anotacion
-      # que se creo un comentario
-      elsif  @user.id != current_user.id
-        @list = [@user, @user_propietario]
-        @list.each do |user|
-          UserMailer.comentario_mailer(user, @anotacion, @comentario).deliver_now
+      # validar si la solicitud de notificacion viene de un ambiente o de un user con anotable_type=2
+      if @anotacion.anotable_type == "User"
+        # se notifica al creador de la anotacion, que el aprendiz creo un comentario.
+        if @user.has_role? :aprendiz
+          UserMailer.comentario_mailer(@user, @anotacion, @comentario).deliver_now
+        # se notifica al aprendiz y al creador de la anotacion
+        # que se creo un comentario
+        elsif  @user.id != current_user.id
+          @list = [@user, @user_propietario]
+          @list.each do |user|
+            UserMailer.comentario_mailer(@user, @anotacion, @comentario).deliver_now
+          end
+        # notifica al aprendiz que se creo un comentario
+        elsif  @user.id == current_user.id
+          UserMailer.comentario_mailer(@user_propietario, @anotacion, @comentario).deliver_now
         end
-      # notifica al aprendiz que se creo un comentario
-      elsif  @user.id == current_user.id
-        UserMailer.comentario_mailer(@user_propietario, @anotacion, @comentario).deliver_now
       end
+    end
+
+    def destroy
+      @comentario.destroy
+      flash[:success] = t('.success')
+      respond_with @anotacion, :comentarios
     end
 
     private
@@ -140,7 +169,12 @@ module Anotaciones
       @user = Anotacion.find(params[:anotacion_id]).creator
     end
 
-    # a quienle asigna la anotacion
+    # Tipo de anotacion realizada
+    def propietario_is_user?
+      @anotacion.anotable_type == "Ambiente"
+    end
+
+    # a quien se le asigna la anotacion
     def set_propietario
       @user_propietario = User.find(Anotacion.find(params[:anotacion_id]).anotable_id)
     end
@@ -151,7 +185,7 @@ module Anotaciones
     end
 
     def comentario_params
-      params.require(:comentario).permit(:comentario)
+      params.require(:comentario).permit(:comentario, :file)
     end
   end
 >>>>>>> e578138d5a048f8fbef55b6f67de40588c65a0ec

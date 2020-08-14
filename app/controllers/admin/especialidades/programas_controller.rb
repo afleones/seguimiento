@@ -10,12 +10,25 @@ module Admin
       before_action :set_programa, only: %i[show edit update destroy]
 
       def index
-        @programas = if params[:q].present?
-                       @especialidad.programas.where('nombre ilike :q', q:
-                       "%#{params[:q]}%").page params[:page]
-                     else
-                       @especialidad.programas.page params[:page]
-                     end
+        if params[:q].present?
+          if params[:q].include? ':'
+          @programas = @especialidad.programas.where('cast(id as text) ilike :q', q: "%#{params[:q].gsub(":","").to_i}%").order(id: :asc).page params[:page]
+          else
+          @programas = @especialidad.programas.where('cast(id as text) ilike :q or cast(created_at as text) ilike :q or nombre ilike :q', q: "%#{params[:q]}%").order(id: :asc).page params[:page]
+          end
+        else
+          @programas = @especialidad.programas.order(id: :asc).page params[:page]
+        end
+        respond_html_and_csv
+      end
+
+      def respond_html_and_csv
+        respond_to do |format|
+          format.html
+          format.xlsx do
+            response.headers['Content-Disposition'] = 'attachment; filename="Programas.xlsx"'
+          end
+        end
       end
 
       def new

@@ -5,25 +5,35 @@ module Admin
     before_action :authenticate_user!
     before_action :set_especialidad, only: %i[show edit update destroy]
     respond_to :html
+    respond_to :js
 
     def index
       # authorize Especialidad
-      @especialidades = if params[:q].present?
-                          Especialidad.where('nombre ilike :q', q:
-                          "%#{params[:q]}%").page params[:page]
-                        else
-                          Especialidad.all.page params[:page]
-                        end
+      if params[:q].present?
+        if params[:q].include? ':'
+          @especialidades = Especialidad.where('cast(id as text) ilike :q', q: "%#{params[:q].gsub(":","").to_i}%").order(id: :asc).page params[:page]
+        else
+          @especialidades = Especialidad.where('cast(id as text) ilike :q or cast(created_at as text) ilike :q or nombre ilike :q', q: "%#{params[:q]}%").order(id: :asc).page params[:page]
+        end
+      else
+        @especialidades = Especialidad.all.page params[:page]
+      end
+      respond_html_and_csv
+    end
+
+    def respond_html_and_csv
+      respond_to do |format|
+        format.html
+        format.xlsx do
+          response.headers['Content-Disposition'] = 'attachment; filename="especialidades.xlsx"'
+        end
+      end
     end
 
     def show; end
 
     def new
       @especialidad = Especialidad.new
-      respond_to do |f|
-        # f.html
-        f.js
-      end
     end
 
     def create
@@ -32,8 +42,8 @@ module Admin
         flash[:success] = t('.success')
         respond_with :admin, @especialidad
       else
-        flash[:alert] = t('.alert')
-        render 'new'
+        flash[:alert] = t('alert')
+        respond_with :admin, :especialidades
       end
     end
 
@@ -45,7 +55,7 @@ module Admin
         flash[:success] = t('.success')
         respond_with :admin, @especialidad
       else
-        flash[:alert] = t(`'alert'`)
+        flash[:alert] = t('alert')
         render 'edit'
       end
     end

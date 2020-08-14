@@ -12,7 +12,6 @@
         <!-- Main css styles -->
         <%= stylesheet_link_tag    'application', media: 'all', 'data-turbolinks-track': 'reload' %>
         <!-- Include style per-controller - vendor plugins -->
-        <!-- Include style per-controller - vendor plugins -->
         <%= stylesheet_link_tag params[:controller] if ::Rails.application.assets.find_asset("#{params[:controller]}.css") %>
         <!-- Main javascript files -->
         <%= javascript_include_tag 'application', 'data-turbolinks-track': 'reload' %>
@@ -27,8 +26,7 @@
             <div id="page-wrapper" class="gray-bg <%= @extra_class %>">
                 <!-- Page wrapper -->
                 <%= render 'layouts/topnavbar' %>
-                <!--<p class="notice"><%= notice %></p>
-                <p class="alert"><%= alert %></p>-->
+                <!-- breadcrumbs -->
                 <div class="container mt-3 mb-3">
                     <div class="row">
                         <div class="col-md-12 breadcrumb p-3">
